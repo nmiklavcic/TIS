@@ -42,6 +42,8 @@
 
 import json
 from pathlib import Path
+# Debug import
+from time import sleep
 
 
 def encode(vhod: list) -> tuple[list, list]:
@@ -63,22 +65,63 @@ def encode(vhod: list) -> tuple[list, list]:
     """
     # dobimo začetni seznam znakov S (nabor ASCII)
     # generiramo seznam S z indeksi od 0 do 255, ki predstavljajo znake ASCII
+    
+    izhod = vhod.copy()    
     S = list(range(256))
+    
+    # Zamenjamo znake ASCII v vhodnem nizu z indeksi i S
+    for l in range(len(izhod)):
+        izhod[l] = S.index(ord(izhod[l]))
     
     # Iteriramo skozi vhod in piščemo najpogostejše pare znakov
     for i in range(256, 4096):
         # preštejemo pojavitve vseh parov znakov v vhodnem nizu in jih shranimo v slovar
         pari={}
-        for j in range(len(vhod)-1):
-            par=(vhod[j],vhod[j+1])
+        for j in range(len(izhod)-1):
+            par=(izhod[j],izhod[j+1])
             if par in pari:
                 pari[par] += 1
             else:
                 pari[par] = 1
+        # Najpogostejši par znakov shranimo v Z
+        Z = max(pari, key=pari.get)
         
-    
-    izhod = []
-    izhodS = []
+        # Če je frekvenca Z < 2 break
+        if pari[Z] < 2:
+            break
+        
+        # Dodamo Z na konec seznama S
+        S.append(Z)
+        
+        # k = indeks(Z)
+        k = i
+        
+        # Zamnjamo vse pare znakov Z v vhodu s k
+        n = 0
+        len_izhod = len(izhod)
+        while True:
+            if n == (len_izhod-1):
+                break
+            # DEBUG
+            # print("n:", n, "len(izhod):", len_izhod)
+            # print("Izhod: ", izhod)
+            # print("Izhod[n]:", izhod[n])
+            # print("Izhod[n+1]:", izhod[n+1])
+            ####
+            if izhod[n] == Z[0] and izhod[n+1] == Z[1]:
+                izhod[n] = k
+                del izhod[n+1]
+                # Izbrisali smo en element in rabimo zato korektno popraviti nlen_izhod da ne gremo izven seznama
+                len_izhod -= 1
+            n += 1
+            
+        # DEBUG - prinatamo trenutni seznam S in vhod
+        # print("S:", S)
+        # print("Izhod:", izhod)
+        # sleep(10)
+        ####
+        
+    izhodS = S.copy()
     return (izhod, izhodS)
 
 
@@ -201,6 +244,10 @@ if __name__ == "__main__":
     pathOutput = input("Pot do izhoda: ")
     pathTestOutput = input("Pot do testnega izhoda: ")
     vhod = read_raw_text(pathInput)
+    print("Vhod:", vhod)
+    print(" ")
+    # Debug - počakamo 1000 sekund da lahko pregledamo vhod
+    sleep(10)
     
     # Kličemo funkcijo encode in dobimo izhod in izhodS
     izhod, izhodS = encode(vhod)
