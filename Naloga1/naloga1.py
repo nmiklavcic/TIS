@@ -223,7 +223,7 @@ def decode(vhod: list, S: list) -> list:
     ####    
     return izhod
 
-def compute_compression_ratio(vhod: list, izhod: list ) -> float:
+def compute_efficiency(vhod: list, izhod: list ) -> float:
     """
     Izracuna kompresijsko razmerje.
 
@@ -240,7 +240,10 @@ def compute_compression_ratio(vhod: list, izhod: list ) -> float:
     R : float
         Kompresijsko razmerje.
     """
-    R = float("nan")
+    if len(vhod) == 0 and len(izhod) == 0 :
+        R = float("nan")
+    else :
+        R = float((len(vhod)*8)/(len(izhod)*12))
     return R
 
 
@@ -319,7 +322,7 @@ if __name__ == "__main__":
     # Preberemo vhodno besedilo iz datoteke
     # Datoteka je textovna, podati moramo path do nje 
     
-    mode = input("Izberite način delovanja (1 - encode, 2 - decode): ")
+    mode = input("Izberite način delovanja (1 - encode, 2 - decode, 3 . efficiency): ")
     
     pathInput = input("Pot do vhoda: ")
     pathOutput = input("Pot do izhoda: ")
@@ -364,7 +367,7 @@ if __name__ == "__main__":
             #print("Testni izhodS:", test_izhodS)
             
         # Izračunamo kompresijsko razmerje in ga izpišemo
-        R = compute_compression_ratio(vhod, izhod)
+        R = compute_efficiency(vhod, izhod)
         print("Kompresijsko razmerje:", R)
     elif mode == "2":
         
@@ -392,3 +395,11 @@ if __name__ == "__main__":
             
             #print("Izhod", izhod)
             #print("Izhod test", test_izhod)   
+            
+    elif mode == "3" :
+        inWord, inDict = read_coded_msg(pathInput)
+        outWord = read_raw_text(pathTestOutput)
+        
+        R = compute_efficiency(outWord, inWord)
+        
+        print("Kompresijsko razmerje",R)
