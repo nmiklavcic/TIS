@@ -89,13 +89,14 @@ def encode(vhod: list) -> tuple[list, list]:
                 pari[par] = 1
         # Najpogostejši par znakov shranimo v Z
         Z = max(pari, key=pari.get)
+        ZArr = [Z[0], Z[1]]
         
         # Če je frekvenca Z < 2 break
         if pari[Z] < 2:
             break
         
         # Dodamo Z na konec seznama S
-        S.append(Z)
+        S.append(ZArr)
         
         # k = indeks(Z)
         k = i
@@ -145,7 +146,28 @@ def decode(vhod: list, S: list) -> list:
     izhod : list
         Dekodirano vhodno sporocilo v obliki ASCII znakov.
     """
+    # Naredi obratno kot decode, in je še lažje saj je listS že podan
+    # Gremo čez list in vsakič ko naletimo na indeks ki je večji od 255 tega zamenjamo z parom iz S
+    # To ponavljamo dokler niso v izhodu le še indeksi manjši od 256
+    #  Na koncu indekse zamenjamo z ASCII znaki
     izhod = []
+    
+    while True:
+        for i in range(len(vhod)):
+            if vhod[i] > 255:
+                par = S[vhod[i]]
+                izhod.append(par[0])
+                izhod.append(par[1])
+            else:
+                izhod.append(vhod[i])
+        if all(x < 256 for x in izhod):
+            break
+    # Spremenimo indekse v ASCII
+    
+    for j in range(len(izhod)):
+        izhod[j] = chr(izhod[j])
+    
+
     return izhod
 
 
@@ -244,44 +266,77 @@ def write_coded_msg(path: str, izhod: list, izhodS: list) -> None:
 if __name__ == "__main__":
     # Preberemo vhodno besedilo iz datoteke
     # Datoteka je textovna, podati moramo path do nje 
+    
+    mode = input("Izberite način delovanja (1 - encode, 2 - decode): ")
+    
     pathInput = input("Pot do vhoda: ")
     pathOutput = input("Pot do izhoda: ")
     pathTestOutput = input("Pot do testnega izhoda: ")
-    vhod = read_raw_text(pathInput)
-    print("Vhod:", vhod)
-    print(" ")
-    # Debug - počakamo 1000 sekund da lahko pregledamo vhod
-    sleep(10)
     
-    # Kličemo funkcijo encode in dobimo izhod in izhodS
     
-    izhod, izhodS = encode(vhod)
-    
-    # DEBUG
-    print("Izhod:", izhod)
-    print("IzhodS:", izhodS)
-    #### 
-    
-    # Zapišemo kodirano sporočilo v JSON na željen izhod
-    write_coded_msg(pathOutput, izhod, izhodS)
-    
-    # Primerjamo izhod ki smo ga dobili z kodiranjem in testnim izhodom
-    # Preberemo izhod JSON datoteke
-    izhod, izhodS = read_coded_msg(pathOutput)
-    
-    # Preberemo testni izhod JSON datoteke
-    test_izhod, test_izhodS = read_coded_msg(pathTestOutput)
-    
-    # Preverimo ali se izhod in test_izhod ujemata
-    if izhod == test_izhod and izhodS == test_izhodS:
-        print("Match")
-    else:
-        print("Error - no match")
-        # izpišemo razliko med izhodom in test_izhodom
-        print("Izhod:", izhod)
-        print("Testni izhod:", test_izhod)
+    if mode == "1":
         
-    # Izračunamo kompresijsko razmerje in ga izpišemo
-    R = compute_compression_ratio(vhod, izhod)
-    print("Kompresijsko razmerje:", R)
+        vhod = read_raw_text(pathInput)
+        print("Vhod:", vhod)
+        print(" ")
+        # Debug - počakamo 1000 sekund da lahko pregledamo vhod
+        sleep(10)
         
+        # Kličemo funkcijo encode in dobimo izhod in izhodS
+        
+        izhod, izhodS = encode(vhod)
+        
+        # DEBUG
+        #print("Izhod:", izhod)
+        #print("IzhodS:", izhodS)
+        #### 
+        
+        # Zapišemo kodirano sporočilo v JSON na željen izhod
+        write_coded_msg(pathOutput, izhod, izhodS)
+        
+        # Primerjamo izhod ki smo ga dobili z kodiranjem in testnim izhodom
+        # Preberemo izhod JSON datoteke
+        
+        # Preberemo testni izhod JSON datoteke
+        test_izhod, test_izhodS = read_coded_msg(pathTestOutput)
+        
+        # Preverimo ali se izhod in test_izhod ujemata
+        if izhod == test_izhod and izhodS == test_izhodS:
+            print("Match")
+        else:
+            print("Error - no match")
+            # izpišemo razliko med izhodom in test_izhodom
+            print("Izhod:", izhod)
+            print("Testni izhod:", test_izhod)
+            print("IzhodS:", izhodS)
+            print("Testni izhodS:", test_izhodS)
+            
+        # Izračunamo kompresijsko razmerje in ga izpišemo
+        R = compute_compression_ratio(vhod, izhod)
+        print("Kompresijsko razmerje:", R)
+    elif mode == "2":
+        
+        vhod, vhodS = read_coded_msg(pathInput)
+        print("Vhodna beseda:", vhod)
+        print("Vhodna abeceda", vhodS)
+        # Debug
+        sleep(10)
+        
+        # Kličemo funkcijo decode in dobimo izhod
+        
+        izhod = decode(vhod,vhodS)
+        
+        write_raw_text(pathOutput,izhod)
+        
+        test_izhod = read_raw_text(pathTestOutput)
+        
+        if izhod == test_izhod:
+            print("Match")
+            
+            print("Izhod", izhod)
+            print("Izhod test", test_izhod)
+        else:
+            print("Error - no match")
+            
+            print("Izhod", izhod)
+            print("Izhod test", test_izhod)   
