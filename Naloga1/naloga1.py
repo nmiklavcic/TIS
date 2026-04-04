@@ -73,6 +73,10 @@ def encode(vhod: list) -> tuple[list, list]:
     for l in range(len(izhod)):
         izhod[l] = S.index(ord(izhod[l]))
     
+    # DEBUG
+    print("Izhod po zamenjavi", izhod)
+    ####
+    
     # Iteriramo skozi vhod in piščemo najpogostejše pare znakov
     for i in range(256, 4096):
         # preštejemo pojavitve vseh parov znakov v vhodnem nizu in jih shranimo v slovar
@@ -100,7 +104,7 @@ def encode(vhod: list) -> tuple[list, list]:
         n = 0
         len_izhod = len(izhod)
         while True:
-            if n == (len_izhod-1):
+            if n == (len_izhod-1) or n == len_izhod:
                 break
             # DEBUG
             # print("n:", n, "len(izhod):", len_izhod)
@@ -250,7 +254,13 @@ if __name__ == "__main__":
     sleep(10)
     
     # Kličemo funkcijo encode in dobimo izhod in izhodS
+    
     izhod, izhodS = encode(vhod)
+    
+    # DEBUG
+    print("Izhod:", izhod)
+    print("IzhodS:", izhodS)
+    #### 
     
     # Zapišemo kodirano sporočilo v JSON na željen izhod
     write_coded_msg(pathOutput, izhod, izhodS)
