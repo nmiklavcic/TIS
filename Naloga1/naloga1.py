@@ -74,7 +74,7 @@ def encode(vhod: list) -> tuple[list, list]:
         izhod[l] = S.index(ord(izhod[l]))
     
     # DEBUG
-    print("Izhod po zamenjavi", izhod)
+    #print("Izhod po zamenjavi", izhod)
     ####
     
     # Iteriramo skozi vhod in piščemo najpogostejše pare znakov
@@ -152,24 +152,76 @@ def decode(vhod: list, S: list) -> list:
     #  Na koncu indekse zamenjamo z ASCII znaki
     izhod = []
     
-    while True:
-        for i in range(len(vhod)):
-            if vhod[i] > 255:
-                par = S[vhod[i]]
-                izhod.append(par[0])
-                izhod.append(par[1])
-            else:
-                izhod.append(vhod[i])
-        if all(x < 256 for x in izhod):
-            break
+    # while True:
+    #     for i in range(len(vhod)):
+    #         if vhod[i] > 255:
+    #             par = S[vhod[i]]
+    #             izhod.append(par[0])
+    #             izhod.append(par[1])
+    #         else:
+    #             izhod.append(vhod[i])
+    #     # DEBUG
+    #     print(izhod)
+    #     ####           
+    #     if all(x < 256 for x in izhod):
+    #         break
+
+    # # Spremenimo indekse v ASCII
+    
+    # for j in range(len(izhod)):
+    #     izhod[j] = chr(izhod[j])
+
+    # Trenutni decode ne dela 
+    # Nova ideja 
+    # Spremeniš nize v dictu in potem s tem sestaviš izhod 
+    
+    dictS = S.copy()
+    for i in range(256,len(dictS)):
+        lenDictSCurr=len(dictS[i])
+        for j in range(0,lenDictSCurr):
+            if dictS[i][0] > 255 :
+                k = dictS[i][0]
+                for l in range(0,len(dictS[k])):
+                    dictS[i].append(dictS[k][l])
+                    # # DEBUG
+                    # print("DICTS at i : ", i ,"     ", dictS[i])
+                    # ####
+            else :
+                dictS[i].append(dictS[i][0])
+                # # DEBUG
+                # print("DICTS at i : ", i ,"     ", dictS[i])
+                # ####
+            del dictS[i][0]
+            # # DEBUG
+            # print("DICTS at i : ", i ,"     ", dictS[i])
+            # ####
+            
+        # # DEBUG
+        # print("Final DICTS at i  before moving to new i: ", i ,"     ", dictS[i])
+        # ####
+    # # DEBUG
+    # print(dictS)
+    # ####
+    
+    for i in range(len(vhod)):
+        if vhod[i] > 255:
+            for j in range(len(dictS[vhod[i]])) :
+                izhod.append(dictS[vhod[i]][j])
+        else:
+            izhod.append(vhod[i])
+    # # DEBUG
+    # print(izhod)
+    # ####           
+
     # Spremenimo indekse v ASCII
     
     for j in range(len(izhod)):
         izhod[j] = chr(izhod[j])
-    
-
+        
+    # DEBUG
+    # print(izhod)
+    ####    
     return izhod
-
 
 def compute_compression_ratio(vhod: list, izhod: list ) -> float:
     """
@@ -277,10 +329,10 @@ if __name__ == "__main__":
     if mode == "1":
         
         vhod = read_raw_text(pathInput)
-        print("Vhod:", vhod)
-        print(" ")
+        #print("Vhod:", vhod)
+        #print(" ")
         # Debug - počakamo 1000 sekund da lahko pregledamo vhod
-        sleep(10)
+        #sleep(10)
         
         # Kličemo funkcijo encode in dobimo izhod in izhodS
         
@@ -306,10 +358,10 @@ if __name__ == "__main__":
         else:
             print("Error - no match")
             # izpišemo razliko med izhodom in test_izhodom
-            print("Izhod:", izhod)
-            print("Testni izhod:", test_izhod)
-            print("IzhodS:", izhodS)
-            print("Testni izhodS:", test_izhodS)
+            #print("Izhod:", izhod)
+            #print("Testni izhod:", test_izhod)
+            #print("IzhodS:", izhodS)
+            #print("Testni izhodS:", test_izhodS)
             
         # Izračunamo kompresijsko razmerje in ga izpišemo
         R = compute_compression_ratio(vhod, izhod)
@@ -317,10 +369,10 @@ if __name__ == "__main__":
     elif mode == "2":
         
         vhod, vhodS = read_coded_msg(pathInput)
-        print("Vhodna beseda:", vhod)
-        print("Vhodna abeceda", vhodS)
+        #print("Vhodna beseda:", vhod)
+        #print("Vhodna abeceda", vhodS)
         # Debug
-        sleep(10)
+        #sleep(10)
         
         # Kličemo funkcijo decode in dobimo izhod
         
@@ -333,10 +385,10 @@ if __name__ == "__main__":
         if izhod == test_izhod:
             print("Match")
             
-            print("Izhod", izhod)
-            print("Izhod test", test_izhod)
+            #print("Izhod", izhod)
+            #print("Izhod test", test_izhod)
         else:
             print("Error - no match")
             
-            print("Izhod", izhod)
-            print("Izhod test", test_izhod)   
+            #print("Izhod", izhod)
+            #print("Izhod test", test_izhod)   
