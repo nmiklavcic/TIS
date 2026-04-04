@@ -43,7 +43,7 @@
 import json
 from pathlib import Path
 # Debug import
-from time import sleep
+# from time import sleep
 
 
 def encode(vhod: list) -> tuple[list, list]:
