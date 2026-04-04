@@ -61,6 +61,22 @@ def encode(vhod: list) -> tuple[list, list]:
         izhodS : list
             Seznam ASCII kod in parov indeksov.
     """
+    # dobimo začetni seznam znakov S (nabor ASCII)
+    # generiramo seznam S z indeksi od 0 do 255, ki predstavljajo znake ASCII
+    S = list(range(256))
+    
+    # Iteriramo skozi vhod in piščemo najpogostejše pare znakov
+    for i in range(256, 4096):
+        # preštejemo pojavitve vseh parov znakov v vhodnem nizu in jih shranimo v slovar
+        pari={}
+        for j in range(len(vhod)-1):
+            par=(vhod[j],vhod[j+1])
+            if par in pari:
+                pari[par] += 1
+            else:
+                pari[par] = 1
+        
+    
     izhod = []
     izhodS = []
     return (izhod, izhodS)
@@ -177,3 +193,38 @@ def write_coded_msg(path: str, izhod: list, izhodS: list) -> None:
         json.dumps(data, ensure_ascii=False, indent=4),
         encoding="ascii",
     )
+
+if __name__ == "__main__":
+    # Preberemo vhodno besedilo iz datoteke
+    # Datoteka je textovna, podati moramo path do nje 
+    pathInput = input("Pot do vhoda: ")
+    pathOutput = input("Pot do izhoda: ")
+    pathTestOutput = input("Pot do testnega izhoda: ")
+    vhod = read_raw_text(pathInput)
+    
+    # Kličemo funkcijo encode in dobimo izhod in izhodS
+    izhod, izhodS = encode(vhod)
+    
+    # Zapišemo kodirano sporočilo v JSON na željen izhod
+    write_coded_msg(pathOutput, izhod, izhodS)
+    
+    # Primerjamo izhod ki smo ga dobili z kodiranjem in testnim izhodom
+    # Preberemo izhod JSON datoteke
+    izhod, izhodS = read_coded_msg(pathOutput)
+    
+    # Preberemo testni izhod JSON datoteke
+    test_izhod, test_izhodS = read_coded_msg(pathTestOutput)
+    
+    # Preverimo ali se izhod in test_izhod ujemata
+    if izhod == test_izhod and izhodS == test_izhodS:
+        print("Match")
+    else:
+        print("Error - no match")
+        # izpišemo razliko med izhodom in test_izhodom
+        print("Izhod:", izhod)
+        print("Testni izhod:", test_izhod)
+        
+    # Izračunamo kompresijsko razmerje in ga izpišemo
+    R = compute_compression_ratio(vhod, izhod)
+    print("Kompresijsko razmerje:", R)
+        
