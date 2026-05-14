@@ -35,16 +35,18 @@ def estimate_channel(x: list[int], y: list[int], m: int, n: int) -> np.ndarray:
     """
     # Tukaj napisite svojo kodo.
     
+    if len(x) != len(y) :
+        raise ValueError
     
     
     xapp = [0 for _ in range(m)]
-    appears = [[0 for _ in range(n)] for _ in range(m)]
+    appears = [[0 for _ in range(m)] for _ in range(n)]
     
     for i in range(0,len(x)) :
-        if x[i] >= m or y[i] >= n :
+        if x[i] >= m or y[i] >= n or x[i] < 0 or y[i] < 0 :
             raise ValueError
         else :
-            appears[x[i]][y[i]] += 1
+            appears[y[i]][x[i]] += 1
             xapp[x[i]] += 1
             # DEBUG
             # print(xapp)
@@ -52,17 +54,16 @@ def estimate_channel(x: list[int], y: list[int], m: int, n: int) -> np.ndarray:
     # DEBUG
     # print(" ")
     # print(xapp)
-    W = [[0 for _ in range(n)] for _ in range(m)]
+    W = np.zeros((n, m))
     
     for i in range(m) :
         for j in range(n) :
             # DEBUG 
             # print(appears[i][j]/(m*n), xapp[i]/len(x))
             # print()
-            W[i][j] = (appears[i][j]/(m*n))/(xapp[i]/len(x))
+            W[j][i] = (appears[j][i]/len(x))/(xapp[i]/len(x))
     
-    return W
-    pass 
+    return W 
 
 
 def blahut_arimoto(
