@@ -34,7 +34,35 @@ def estimate_channel(x: list[int], y: list[int], m: int, n: int) -> np.ndarray:
         Ce sta x in y razlicnih dolzin ali se kaksen simbol pojavi zunaj dovoljenega obsega.
     """
     # Tukaj napisite svojo kodo.
-    pass
+    
+    
+    
+    xapp = [0 for _ in range(m)]
+    appears = [[0 for _ in range(n)] for _ in range(m)]
+    
+    for i in range(0,len(x)) :
+        if x[i] >= m or y[i] >= n :
+            raise ValueError
+        else :
+            appears[x[i]][y[i]] += 1
+            xapp[x[i]] += 1
+            # DEBUG
+            # print(xapp)
+    
+    # DEBUG
+    # print(" ")
+    # print(xapp)
+    W = [[0 for _ in range(n)] for _ in range(m)]
+    
+    for i in range(m) :
+        for j in range(n) :
+            # DEBUG 
+            # print(appears[i][j]/(m*n), xapp[i]/len(x))
+            # print()
+            W[i][j] = (appears[i][j]/(m*n))/(xapp[i]/len(x))
+    
+    return W
+    pass 
 
 
 def blahut_arimoto(
@@ -177,3 +205,16 @@ def make_zchannel_dataset(
     flip = rng.random(n) < p
     y = [0 if xi == 0 else (0 if f else 1) for xi, f in zip(x, flip)]
     return x, y
+
+
+if __name__ == "__main__":
+    x = [3,2,0,2,3,0,2,1,0,1,2,0,2,4,2,4,2,2,3,2]
+    y = [2,3,0,4,2,0,2,5,2,0,5,5,3,3,5,0,5,3,5,0]
+    a = estimate_channel(x, y, 5, 6)
+    print(x)
+    print(y)
+    print()
+    print("      Y  Y  Y  Y  Y  Y")
+    print("      0  1  2  3  4  5")
+    for i in range(0, len(a)) :
+        print("X:",i,a[i])
