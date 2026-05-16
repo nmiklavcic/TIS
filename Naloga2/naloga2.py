@@ -93,8 +93,38 @@ def blahut_arimoto(
     ValueError
         Ce ima W kaksen stolpec ni veljavna porazdelitev.
     """
-    # Tukaj napisite svojo kodo.
-    pass
+    m = len(W[0])
+    n = len(W)
+    
+
+    
+    i = 0
+    p = np.ones(m) / m
+    
+    
+    if not np.allclose(W.sum(axis=0), 1.0):
+        raise ValueError("W columns must sum to 1")
+
+    
+    while i < max_iter :
+        
+        r = W @ p
+        r = np.where(r > 0, r, 1.0)
+        ratio = np.where(W > 0, W / r[:, np.newaxis], 1.0)
+        log_ratio = np.where(W > 0, np.log(ratio), 0.0)
+        c = (W * log_ratio).sum(axis=0)
+
+        unnorm = p * np.exp(c)
+        p_new = unnorm / unnorm.sum()
+
+        if np.max(np.abs(p_new - p)) < tol:
+            return p_new
+
+        p = p_new
+
+
+        
+    return p
 
 
 def compute_capacity(W: np.ndarray, p: np.ndarray) -> float:
@@ -113,8 +143,21 @@ def compute_capacity(W: np.ndarray, p: np.ndarray) -> float:
     C_bits : float
         Vrednost I(X;Y) v bitih.
     """
-    # Tukaj napisite svojo kodo.
-    pass
+    q = W @ p  # output marginal
+
+    q_safe = np.where(q > 0, q, 1.0)
+    H_Y = -np.sum(np.where(q > 0, q * np.log2(q_safe), 0.0))
+
+    H_Y_given_X = 0.0
+    for xi in range(len(p)):
+        col = W[:, xi]
+        col_safe = np.where(col > 0, col, 1.0)
+        H_Y_given_X += p[xi] * (-np.sum(np.where(col > 0, col * np.log2(col_safe), 0.0)))
+
+    
+    I = H_Y - H_Y_given_X
+    
+    return I
 
 
 def estimate_capacity(
@@ -148,8 +191,11 @@ def estimate_capacity(
     C_bits : float
         Ocenjena kapaciteta kanala v bitih.
     """
-    # Tukaj napisite svojo kodo.
-    pass
+    W = estimate_channel(x, y, m, n)
+    p_star = blahut_arimoto(W, tol, max_iter)
+    I = compute_capacity(W, p_star)
+    return I 
+
 
 
 def make_bsc_dataset(
@@ -167,6 +213,8 @@ def make_bsc_dataset(
     x = rng.integers(0, 2, size=n).tolist()
     flip = rng.random(n) < p
     y = [xi ^ int(f) for xi, f in zip(x, flip)]
+    print(x)
+    print(y)
     return x, y
 
 
@@ -186,6 +234,8 @@ def make_bec_dataset(
     x = rng.integers(0, 2, size=n).tolist()
     erased = rng.random(n) < epsilon
     y = [2 if e else xi for xi, e in zip(x, erased)]
+    print(x)
+    print(y)
     return x, y
 
 
@@ -205,17 +255,39 @@ def make_zchannel_dataset(
     x = rng.integers(0, 2, size=n).tolist()
     flip = rng.random(n) < p
     y = [0 if xi == 0 else (0 if f else 1) for xi, f in zip(x, flip)]
+    print(x)
+    print(y)
     return x, y
 
 
 if __name__ == "__main__":
-    x = [3,2,0,2,3,0,2,1,0,1,2,0,2,4,2,4,2,2,3,2]
-    y = [2,3,0,4,2,0,2,5,2,0,5,5,3,3,5,0,5,3,5,0]
-    a = estimate_channel(x, y, 5, 6)
-    print(x)
-    print(y)
+    # BSC with p=0.1 — expected capacity ≈ 1 - H(0.1) ≈ 0.531 bits
+    print("=== BSC (p=0.1) ===")
+    x, y = make_bsc_dataset(100, p=0.1, seed=42)
+    W = estimate_channel(x, y, 2, 2)
+    print("Channel matrix W:\n", W)
+    p_star = blahut_arimoto(W)
+    print("Optimal input distribution:", p_star)
+    print("Capacity:", compute_capacity(W, p_star), "bits")
+
     print()
-    print("      Y  Y  Y  Y  Y  Y")
-    print("      0  1  2  3  4  5")
-    for i in range(0, len(a)) :
-        print("X:",i,a[i])
+
+    # BEC with epsilon=0.3 — expected capacity = 1 - 0.3 = 0.7 bits
+    print("=== BEC (epsilon=0.3) ===")
+    x, y = make_bec_dataset(100, epsilon=0.3, seed=42)
+    W = estimate_channel(x, y, 2, 3)
+    print("Channel matrix W:\n", W)
+    p_star = blahut_arimoto(W)
+    print("Optimal input distribution:", p_star)
+    print("Capacity:", compute_capacity(W, p_star), "bits")
+
+    print()
+
+    # Z-channel with p=0.5
+    print("=== Z-channel (p=0.5) ===")
+    x, y = make_zchannel_dataset(100, p=0.5, seed=42)
+    W = estimate_channel(x, y, 2, 2)
+    print("Channel matrix W:\n", W)
+    p_star = blahut_arimoto(W)
+    print("Optimal input distribution:", p_star)
+    print("Capacity:", compute_capacity(W, p_star), "bits")
