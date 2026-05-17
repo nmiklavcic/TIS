@@ -260,10 +260,19 @@ def make_zchannel_dataset(
     return x, y
 
 
+def print_pair_counts(x, y):
+    pairs = {}
+    for xi, yi in zip(x, y):
+        pairs[(xi, yi)] = pairs.get((xi, yi), 0) + 1
+    for (xi, yi), count in sorted(pairs.items()):
+        print(f"  x={xi}, y={yi}: {count}")
+
+
 if __name__ == "__main__":
     # BSC with p=0.1 — expected capacity ≈ 1 - H(0.1) ≈ 0.531 bits
     print("=== BSC (p=0.1) ===")
     x, y = make_bsc_dataset(100, p=0.1, seed=42)
+    print("Pair counts:"); print_pair_counts(x, y)
     W = estimate_channel(x, y, 2, 2)
     print("Channel matrix W:\n", W)
     p_star = blahut_arimoto(W)
@@ -275,6 +284,7 @@ if __name__ == "__main__":
     # BEC with epsilon=0.3 — expected capacity = 1 - 0.3 = 0.7 bits
     print("=== BEC (epsilon=0.3) ===")
     x, y = make_bec_dataset(100, epsilon=0.3, seed=42)
+    print("Pair counts:"); print_pair_counts(x, y)
     W = estimate_channel(x, y, 2, 3)
     print("Channel matrix W:\n", W)
     p_star = blahut_arimoto(W)
@@ -286,6 +296,7 @@ if __name__ == "__main__":
     # Z-channel with p=0.5
     print("=== Z-channel (p=0.5) ===")
     x, y = make_zchannel_dataset(100, p=0.5, seed=42)
+    print("Pair counts:"); print_pair_counts(x, y)
     W = estimate_channel(x, y, 2, 2)
     print("Channel matrix W:\n", W)
     p_star = blahut_arimoto(W)
